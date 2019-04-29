@@ -1,6 +1,7 @@
 module Main where
 
-import Lib
+import While
 
 main :: IO ()
-main = someFunc
+main = do
+    putStrLn "Hello world!"
