@@ -1,13 +1,19 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module While where
 import qualified Data.Map.Strict as Map
+import Control.Monad
 
 type Variable = String
 type Value = Integer
 type State = Map.Map Variable Value
--- type State = [(Variable, Value)]
-type Result = (State, Value)
 
-data AExpr 
+
+class Show a => Eval a b where
+    eval :: a -> State -> b
+
+data AExpr
     = Const Value
     | Var Variable
     | Add AExpr AExpr
@@ -15,20 +21,16 @@ data AExpr
     | Mul AExpr AExpr
     deriving (Show)
 
-apply_binary :: (a -> a -> a) -> Maybe a -> Maybe a -> Maybe a
-apply_binary f Nothing _ = Nothing
-apply_binary f _ Nothing = Nothing
-apply_binary f (Just a) (Just b) = Just $ f a b
-apply_binary_eval eval f a b = apply_binary f (eval a) (eval b)
-
-eval_arith :: State -> AExpr -> Maybe Value
-eval_arith state expr = case expr of
-    Const x -> Just x
-    Var x -> Map.lookup x state
-    Add a b -> apply (+) a b
-    Sub a b -> apply (-) a b
-    Mul a b -> apply (*) a b
-    where apply = apply_binary_eval $ eval_arith state
+instance Eval AExpr (Maybe Value) where
+    eval expr state = case expr of
+        Const x -> Just x
+        Var x -> Map.lookup x state
+        Add a b -> apply (+) (eval' a) (eval' b)
+        Sub a b -> apply (-) (eval' a) (eval' b)
+        Mul a b -> apply (*) (eval' a) (eval' b)
+        where 
+            apply = liftM2
+            eval' a = eval a state
 
 data BExpr
     = BTrue
@@ -40,22 +42,32 @@ data BExpr
     | Or BExpr BExpr
     deriving (Show)
 
-eval_bool :: State -> BExpr -> Bool
-eval_bool state expr = case expr of
-    BTrue -> True
-    BFalse -> False
-    Equal a b -> (evala a) == (evala b)
-    Less a b -> (evala a) < (evala b)
-    Not a -> not (eval a)
-    And a b -> case (eval a) of -- short circuiting and
-        False -> False
-        True -> eval b
-    Or a b -> case (eval b) of -- short circuiting or
-        True -> True
-        False -> eval b
-    where 
-        eval = eval_bool state
-        evala = eval_arith state
+instance Eval BExpr Bool where
+    eval expr state = case expr of
+        BTrue -> True
+        BFalse -> False
+        Equal a b -> apply_arith (==) a b
+        Less a b -> apply_arith (<) a b
+        Not a -> not (eval' a)
+
+        -- short circuiting
+        And a b -> case (eval' a) of
+            False -> False
+            True -> eval' b
+        Or a b -> case (eval' a) of
+            True -> True
+            False -> eval' b
+        where
+            eval_arith :: AExpr -> Value
+            eval_arith a = eval a state
+
+            eval' a = eval a state
+
+            apply_bool :: (Bool -> Bool -> Bool) -> BExpr -> BExpr -> Bool
+            apply_bool f a b = f (eval' a) (eval' b)
+
+            apply_arith :: (Value -> Value -> Bool) -> AExpr -> AExpr -> Bool
+            apply_arith f a b = f (eval_arith a) (eval_arith b)
 
 data Cmd
     = Skip
@@ -65,17 +77,20 @@ data Cmd
     | While BExpr Cmd
     deriving (Show)
 
-eval_cmd :: State -> Cmd -> State
-eval_cmd state cmd = case cmd of
-    Skip -> state
-    Assign var expr -> case eval_arith state expr of
-        Just a -> Map.insert var a state
-        Nothing -> state
-    Seq cmd1 cmd2 -> eval_cmd (eval_cmd state cmd1) cmd2
-    If expr cmd1 cmd2 -> case eval_bool state expr of
-        True -> eval_cmd state cmd1
-        False -> eval_cmd state cmd2
-    While expr cmd -> case eval_bool state expr of
-        True -> eval_cmd (eval_cmd state cmd) (While expr cmd)
-        False -> state
-
+instance Eval Cmd State where
+    eval cmd state = case cmd of
+        Skip -> state
+        Assign var expr -> case eval expr state of
+            Just a -> Map.insert var a state
+            Nothing -> Map.delete var state
+        Seq cmd1 cmd2 -> 
+            let state' = eval cmd1 state
+            in eval cmd2 state'
+        If expr cmd1 cmd2 -> case eval expr state of
+            True -> eval cmd1 state
+            False -> eval cmd2 state
+        While expr body -> case eval expr state of
+            True ->
+                let state' = eval body state
+                in eval cmd state
+            False -> state
