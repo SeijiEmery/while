@@ -46,3 +46,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - while
+    # - hunit >= 1.6.0.0
+    - HUnit >= 1.6.0.0

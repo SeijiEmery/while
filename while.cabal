@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cf1077efb654f69cc616ff6d7779b7a527971e0730706a75bbbbcc1c6ee4eab5
+-- hash: cd239efea2a8e70c481e0b872c0b677b93e6b57ee1fda149f63cf6dbd37eca06
 
 name:           while
 version:        0.1.0.0
@@ -60,7 +60,8 @@ test-suite while-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit >=1.6.0.0
+    , base >=4.7 && <5
     , containers
     , while
   default-language: Haskell2010

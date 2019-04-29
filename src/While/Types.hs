@@ -4,6 +4,7 @@ module While.Types
     , State
     , get_var
     , set_var
+    , emptyState
 ) where
 import Data.Map.Strict as Map
 
@@ -17,3 +18,5 @@ get_var = Map.lookup
 set_var :: Variable -> Maybe Value -> State -> State
 set_var var (Just value) = Map.insert var value
 set_var var Nothing = Map.delete var
+
+emptyState = Map.empty
