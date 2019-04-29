@@ -10,14 +10,14 @@ where
         | Seq Cmd Cmd
         | If BExpr Cmd Cmd
         | While BExpr Cmd
-        deriving (Show)
+        deriving (Show, Eq)
 
     eval_cmd :: Cmd -> State -> State
     eval_cmd cmd state = case cmd of
         Skip -> state
         Assign var expr -> 
             let value = eval_arith expr state
-            in set_var var value state
+            in setVar var value state
         Seq cmd1 cmd2 -> 
             let state' = eval_cmd cmd1 state
             in eval_cmd cmd2 state'

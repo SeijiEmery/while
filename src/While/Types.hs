@@ -1,22 +1,19 @@
-module While.Types
-    ( Variable
-    , Value
-    , State
-    , get_var
-    , set_var
-    , emptyState
-) where
-import Data.Map.Strict as Map
+module While.Types where
+    import Data.Map.Strict as Map
 
-type Variable = String
-type Value = Integer
-type State = Map.Map Variable Value
+    type Variable = String
+    type Value = Integer
+    type State = Map.Map Variable Value
 
-get_var :: Variable -> State -> Maybe Value
-get_var = Map.lookup
+    getVar :: Variable -> State -> Maybe Value
+    getVar = Map.lookup
 
-set_var :: Variable -> Maybe Value -> State -> State
-set_var var (Just value) = Map.insert var value
-set_var var Nothing = Map.delete var
+    setVar :: Variable -> Maybe Value -> State -> State
+    setVar var (Just value) = Map.insert var value
+    setVar var Nothing = Map.delete var
 
-emptyState = Map.empty
+    emptyState :: State
+    emptyState = Map.empty
+
+    fromList :: [(Variable, Value)] -> State
+    fromList = Map.fromList

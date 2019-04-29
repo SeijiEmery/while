@@ -1,10 +1,11 @@
 module While (
-    Variable, Value, State, 
-    AExpr (Const), BExpr, Cmd,
+    Variable, Value, State, emptyState, fromList, setVar, getVar,
+    AExpr (Const, Var, Add, Sub, Mul),
+    BExpr (BTrue, BFalse, Equal, Less, Not, And, Or), 
+    Cmd (Skip, Assign, Seq, If, While),
     eval_arith, eval_bool, eval_cmd,
-    get_var, set_var, emptyState
 ) where
-    import While.Types (Variable, Value, State, get_var, set_var, emptyState)
-    import While.AST.Arithmetic (AExpr (Const), eval_arith)
-    import While.AST.Boolean (BExpr, eval_bool)
-    import While.AST.Commands (Cmd, eval_cmd)
+    import While.Types
+    import While.AST.Arithmetic
+    import While.AST.Boolean
+    import While.AST.Commands

@@ -1,5 +1,5 @@
 module While.AST.Boolean where
-    import While.Types (State, Value)
+    import While.Types
     import While.AST.Arithmetic as Arith
     import Control.Monad
 
@@ -12,7 +12,7 @@ module While.AST.Boolean where
         | Not BExpr
         | And BExpr BExpr
         | Or BExpr BExpr
-        deriving (Show)
+        deriving (Show, Eq)
 
     eval_bool :: BExpr -> State -> Bool
     eval_bool expr state = case expr of

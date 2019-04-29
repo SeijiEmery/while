@@ -1,5 +1,5 @@
 module While.AST.Arithmetic where
-    import While.Types (Variable, Value, State, get_var)
+    import While.Types
     import Control.Monad
 
     data AExpr
@@ -8,12 +8,12 @@ module While.AST.Arithmetic where
         | Add AExpr AExpr
         | Sub AExpr AExpr
         | Mul AExpr AExpr
-        deriving (Show)
+        deriving (Show, Eq)
 
     eval_arith :: AExpr -> State -> Maybe Value
     eval_arith expr state = case expr of
         Const x -> Just x
-        Var x -> get_var x state
+        Var x -> getVar x state
         Add a b -> apply (+) (eval' a) (eval' b)
         Sub a b -> apply (-) (eval' a) (eval' b)
         Mul a b -> apply (*) (eval' a) (eval' b)
