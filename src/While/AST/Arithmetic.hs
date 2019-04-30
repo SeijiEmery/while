@@ -21,41 +21,45 @@ module While.AST.Arithmetic where
             apply = liftM2
             eval' a = evalArith a state
 
-    simplify :: AExpr -> AExpr
-    simplify expr@(Const k) = expr
-    simplify expr@(Var x) = expr
-    
-    simplify (Add (Const k1) (Const k2)) = Const (k1 + k2)
-    simplify (Sub (Const k1) (Const k2)) = Const (k1 - k2)
-    simplify (Mul (Const k1) (Const k2)) = Const (k1 * k2)
+    hasFreeVars :: AExpr -> Bool
+    hasFreeVars (Const _) = False
+    hasFreeVars (Var _) = True
+    hasFreeVars (Add expr1 expr2) = (hasFreeVars expr1) || (hasFreeVars expr2)
+    hasFreeVars (Sub expr1 expr2) = (hasFreeVars expr1) || (hasFreeVars expr2)
+    hasFreeVars (Mul expr1 expr2) = (hasFreeVars expr1) || (hasFreeVars expr2)
 
-    simplify (Add (Const k1) (Add (Const k2) expr)) = simplify $ Add (Const (k1 + k2)) (simplify expr)
-    simplify (Sub (Const k1) (Sub (Const k2) expr)) = simplify $ Add (Const (k1 - k2)) (simplify expr)
-    simplify (Mul (Const k1) (Mul (Const k2) expr)) = simplify $ Mul (Const (k1 * k2)) (simplify expr)
+    simplifyArith :: AExpr -> AExpr
+    simplifyArith expr@(Const k) = expr
+    simplifyArith expr@(Var x) = expr
 
-    simplify (Add (Const 0) expr) = simplify expr
-    simplify (Sub (Const 0) (Sub expr1 expr2)) = simplify $ Add (simplify expr1) (simplify expr2)
-    simplify (Mul (Const 1) expr) = simplify expr
+    simplifyArith (Add (Const k1) (Const k2)) = Const (k1 + k2)
+    simplifyArith (Sub (Const k1) (Const k2)) = Const (k1 - k2)
+    simplifyArith (Mul (Const k1) (Const k2)) = Const (k1 * k2)
 
-    simplify (Add expr (Const k)) = simplify $ Add (Const k) expr
-    simplify (Sub expr (Const k)) = simplify $ Sub (Const k) expr
-    simplify (Mul expr (Const k)) = simplify $ Mul (Const k) expr
+    simplifyArith (Add (Const k1) (Add (Const k2) expr)) = simplifyArith $ Add (Const (k1 + k2)) (simplifyArith expr)
+    simplifyArith (Sub (Const k1) (Sub (Const k2) expr)) = simplifyArith $ Add (Const (k1 - k2)) (simplifyArith expr)
+    simplifyArith (Mul (Const k1) (Mul (Const k2) expr)) = simplifyArith $ Mul (Const (k1 * k2)) (simplifyArith expr)
 
-    simplify expr@(Sub expr1 expr2)
+    simplifyArith (Add (Const 0) expr) = simplifyArith expr
+    simplifyArith (Sub (Const 0) (Sub expr1 expr2)) = simplifyArith $ Add (simplifyArith expr1) (simplifyArith expr2)
+    simplifyArith (Mul (Const 1) expr) = simplifyArith expr
+
+    simplifyArith (Add expr (Const k)) = simplifyArith $ Add (Const k) expr
+    simplifyArith (Sub expr (Const k)) = simplifyArith $ Sub (Const k) expr
+    simplifyArith (Mul expr (Const k)) = simplifyArith $ Mul (Const k) expr
+
+    simplifyArith expr@(Sub expr1 expr2)
         | expr1 == expr2 = (Const 0)
         | otherwise      =
-            let expr' = (Sub (simplify expr1) (simplify expr2))
-            in if expr' /= expr then simplify expr' else expr'
+            let expr' = (Sub (simplifyArith expr1) (simplifyArith expr2))
+            in if expr' /= expr then simplifyArith expr' else expr'
 
-    simplify expr@(Add expr1 expr2)
-        | expr1 == expr2 = simplify (Mul (Const 2) (simplify expr1))
+    simplifyArith expr@(Add expr1 expr2)
+        | expr1 == expr2 = simplifyArith (Mul (Const 2) (simplifyArith expr1))
         | otherwise      = 
-            let expr' = (Add (simplify expr1) (simplify expr2))
-            in if expr' /= expr then simplify expr' else expr'
+            let expr' = (Add (simplifyArith expr1) (simplifyArith expr2))
+            in if expr' /= expr then simplifyArith expr' else expr'
 
-    simplify expr@(Mul expr1 expr2) = 
-        let expr' = (Mul (simplify expr1) (simplify expr2))
-        in if expr' /= expr then simplify expr' else expr'
-
-
-
+    simplifyArith expr@(Mul expr1 expr2) = 
+        let expr' = (Mul (simplifyArith expr1) (simplifyArith expr2))
+        in if expr' /= expr then simplifyArith expr' else expr'

@@ -48,3 +48,29 @@ where
                     then evalCmd cmd state'      -- state has changed, valid loop
                     else Nothing                 -- state has not changed, invalid loop 
                 Nothing -> Nothing
+            Just False -> Just state
+            Nothing -> Nothing
+
+    simplifyCmd :: Cmd -> Cmd
+    simplifyCmd cmd@Skip = cmd
+    simplifyCmd (Seq Skip cmd) = simplifyCmd cmd
+    simplifyCmd (Assign var expr) = Assign var $ simplifyArith expr
+    simplifyCmd (If cond cmd1 cmd2) = case simplifyBool cond of
+        BTrue  -> simplifyCmd cmd1
+        BFalse -> simplifyCmd cmd2
+        cond'  -> If cond' (simplifyCmd cmd1) (simplifyCmd cmd2)
+    simplifyCmd (While cond body) = case simplifyBool cond of
+        BFalse -> Skip
+        cond'  -> While cond' (simplifyCmd body)
+
+    weakCheckIsNonterminating :: Cmd -> Bool
+    weakCheckIsNonterminating cmd = check . simplifyCmd $ cmd
+        where
+            check (While BTrue _) = True
+            check (Seq cmd1 cmd2) = (check cmd1) || (check cmd2)
+            check _ = False
+
+    isValidProgram :: Cmd -> State -> Bool
+    isValidProgram cmd state = case evalCmd cmd state of
+        Nothing -> False
+        otherwise -> True
