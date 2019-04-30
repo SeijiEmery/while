@@ -4,6 +4,8 @@ This is an implementation of the While toy language in Haskell for CMPS 203.
 
 Tests are written using HUnit.
 
+Note that I've technically used two languages, as I implemented HW 1 using c++ templates (with a haskell translation for reference), and this version is implemented purely in haskell. There is no code overlap between this and <https://github.com/seijiemery/arith>, and they use entirely different build systems (make vs stack).
+
 ### Build instructions:
     
     stack test
