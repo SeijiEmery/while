@@ -3,7 +3,7 @@ module While (
     AExpr (Const, Var, Add, Sub, Mul),
     BExpr (BTrue, BFalse, Equal, Less, Not, And, Or), 
     Cmd (Skip, Assign, Seq, If, While),
-    eval_arith, eval_bool, eval_cmd,
+    evalArith, evalBool, evalCmd,
 ) where
     import While.Types
     import While.AST.Arithmetic

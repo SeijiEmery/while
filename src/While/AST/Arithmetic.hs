@@ -10,8 +10,8 @@ module While.AST.Arithmetic where
         | Mul AExpr AExpr
         deriving (Show, Eq)
 
-    eval_arith :: AExpr -> State -> Maybe Value
-    eval_arith expr state = case expr of
+    evalArith :: AExpr -> State -> Maybe Value
+    evalArith expr state = case expr of
         Const x -> Just x
         Var x -> getVar x state
         Add a b -> apply (+) (eval' a) (eval' b)
@@ -19,4 +19,6 @@ module While.AST.Arithmetic where
         Mul a b -> apply (*) (eval' a) (eval' b)
         where 
             apply = liftM2
-            eval' a = eval_arith a state
+            eval' a = evalArith a state
+
+

@@ -1,23 +1,13 @@
 import Test.HUnit
-import While
+import WhileSpec.ArithSpec
+import WhileSpec.BoolSpec
 
-
-
-
-tests = test [
-    "const tests" ~: "baz" ~:
-        Just 12 ~=? eval_arith (Const 10) emptyState]
-
-
-
-
--- tests = TestList 
---     [ TestLabel "test arithmetic expressions" test_arith
---     , TestLabel "test boolean expressions" test_bool
---     , TestLabel "test commands" test_cmd
---     ]
+runTests = runTestTT . test $ tests
+    where tests =   [ testArithExprs
+                    , testBoolExprs
+                    ]
 
 main :: IO ()
 main = do 
-    count <- runTestTT tests
+    count <- runTests
     putStrLn ""

@@ -14,33 +14,15 @@ module While.AST.Boolean where
         | Or BExpr BExpr
         deriving (Show, Eq)
 
-    eval_bool :: BExpr -> State -> Bool
-    eval_bool expr state = case expr of
-        BTrue -> True
-        BFalse -> False
-        Equal a b -> apply_arith maybe_equality a b
-        Less  a b -> apply_arith maybe_less a b
-        Not a -> not (eval' a)
-
-        -- short circuiting
-        And a b -> case (eval' a) of
-            False -> False
-            True -> eval' b
-        Or a b -> case (eval' a) of
-            True -> True
-            False -> eval' b
+    evalBool :: BExpr -> State -> Maybe Bool
+    evalBool expr state = case expr of
+        BTrue -> Just True
+        BFalse -> Just False
+        Not a -> liftM (not) (eval' a)
+        And a b -> liftM2 (&&) (eval' a) (eval' b)
+        Or a b -> liftM2 (||) (eval' a) (eval' b)
+        Equal a b -> liftM2 (==) (eval'' a) (eval'' b)
+        Less a b -> liftM2 (<) (eval'' a) (eval'' b)
         where
-            eval' a = eval_bool a state
-            apply_arith f a b = f a' b'
-                where 
-                    a' = eval_arith a state 
-                    b' = eval_arith b state
-
-            maybe_equality :: Maybe Value -> Maybe Value -> Bool
-            maybe_equality (Just a) (Just b) = a == b
-            maybe_equality Nothing Nothing = True
-            maybe_equality _ _ = False
-
-            maybe_less :: Maybe Value -> Maybe Value -> Bool
-            maybe_less (Just a) (Just b) = a < b
-            maybe_less _ _ = False
+            eval' a = evalBool a state
+            eval'' a = evalArith a state

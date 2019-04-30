@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cd239efea2a8e70c481e0b872c0b677b93e6b57ee1fda149f63cf6dbd37eca06
+-- hash: b7f451501c7fa7d5bc25ef89d3fcd282b03c7c0ae645fb070744813ea1748278
 
 name:           while
 version:        0.1.0.0
@@ -55,6 +55,8 @@ test-suite while-test
   type: exitcode-stdio-1.0
   main-is: WhileSpec.hs
   other-modules:
+      WhileSpec.ArithSpec
+      WhileSpec.BoolSpec
       Paths_while
   hs-source-dirs:
       test
