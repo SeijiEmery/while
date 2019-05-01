@@ -9,6 +9,7 @@ copyright:           "2019 Seiji Emery"
 extra-source-files:
 - README.md
 
+
 # Metadata used when publishing your package
 # synopsis:            Haskell implementation of the toy language While (for CMPS 203)
 # category:            PL
